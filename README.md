@@ -2,7 +2,7 @@
 
 ## Prerequiste
 
-- Has golang environment installed 
+- Have golang environment installed 
 
 ## Build and start
 
