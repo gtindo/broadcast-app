@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Broadcast App | Home</title>
-  <link rel="stylesheet" href="../css/style.css">
+  <title>{{.PageTitle}}</title>
+  <link rel="stylesheet" href="/static/css/style.css">
   <style>
     
   </style>
@@ -19,11 +19,12 @@
     </div>
 
     <div class="button-box">
-      <a href="#" onclick="connect()" class="button">Broadcast yourself</a>
+      <a href="#" id="startButton" class="button">Broadcast yourself</a>
     </div>
   </main>
 
   <script src="https://webrtchacks.github.io/adapter/adapter-latest.js"></script>
-  <script src="../js/main.js"></script>
+  <script src="/static/js/main.js" type="module"></script>
+  <script src="/static/js/websocket.js" type="module"></script>
 </body>
 </html>

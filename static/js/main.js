@@ -1,3 +1,5 @@
+// unique id of client
+const clientUUID = "dsaffe2wo0ifsdafowqdsfasf";
 
 // Set constraints on stream
 
@@ -35,6 +37,7 @@ navigator.mediaDevices.getUserMedia(mediaConstraints)
   .then(gotLocalMediaStream)
   .catch(handleLocalMediaStreamError)
 
+
 /*****************************************************/
 const configuration = null;
 let rtcConnection = new RTCPeerConnection(configuration);
@@ -45,15 +48,15 @@ const offerOptions = {
 };
 
 // Log offer creation and sets peer connection session description
-function createdOffer(description){
-  console.log("offer")
-  console.log(description)
+async function createdOffer(description){
+  console.log("========================================")
+  console.log(await(sendSdp(description.sdp)))
   rtcConnection.setLocalDescription(description)
     .then(() => {console.log("Local description has been set.")})
-    .catch((err) => {console.log(err)})
 }
 
-function setSessionDescriptionError(){
+function setSessionDescriptionError(err){
+  console.log(err)
   console.log("Error while setting session description")
 }
 
@@ -61,18 +64,13 @@ function setSessionDescriptionError(){
 
 // Create peer connection and behavior
 
-function connect(){
+export function startBroadCast(){
+  // Add localstream to connection and create offer to connect
+  rtcConnection.addTrack(localStream.getTracks()[0])
 
-
-
-console.log(localStream)
-// Add localstream to connection and create offer to connect
-rtcConnection.addTrack(localStream.getTracks()[0])
-
-rtcConnection.createOffer(offerOptions)
-  .then(createdOffer)
-  .catch(setSessionDescriptionError);
-
+  rtcConnection.createOffer(offerOptions)
+    .then(createdOffer)
+    .catch(setSessionDescriptionError);
 }
 
 /*****************************************************/
@@ -80,6 +78,24 @@ rtcConnection.createOffer(offerOptions)
 function stopBroadcast(){
   rtcConnection.close();
   rtcConnection = null;
+}
+
+async function sendSdp(sdp){
+  const url = "/broadcast/"
+  
+  const data = { dtype: "offer", sdp: sdp, uuid: clientUUID}
+  console.log(JSON.stringify(data))
+
+  const options = {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+  }
+
+  const response = await fetch(url, options)
+  return response.json()
 }
 
 /* Protocols
@@ -95,7 +111,7 @@ RTP :
 2. call RTCPeerConnection.createOffer()
 3. call RTCPeerConnection.setLocalDescription()
 4. Generate ice candidates with STUN Server or TURN Server (set in servers configuration)
-5. Send offer to intended receiver ()
+5. Send offer to intended receiver () // Send sdp
 
 12. client receive Answer
 13. client call RTCPeerConnection.setRemoteDescription()
