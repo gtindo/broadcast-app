@@ -14,10 +14,8 @@ func main() {
 
 	// Serve pages
 	http.HandleFunc("/home/", log(IndexHandler))
-	http.HandleFunc("/broadcast/", log(BroadcastHandler))
 	http.HandleFunc("/socket/", SocketHandler)
 
-	go RTCConnector(SdpChan)
 	RunServer(port)
 }
 

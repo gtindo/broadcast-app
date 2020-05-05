@@ -38,9 +38,10 @@ navigator.mediaDevices.getUserMedia(mediaConstraints)
   .catch(handleLocalMediaStreamError)
 
 
+
 /*****************************************************/
 const configuration = null;
-let rtcConnection = new RTCPeerConnection(configuration);
+export let rtcConnection = new RTCPeerConnection(configuration);
 
 // Set up to exchange only video
 const offerOptions = {
@@ -48,11 +49,14 @@ const offerOptions = {
 };
 
 // Log offer creation and sets peer connection session description
-async function createdOffer(description){
-  console.log("========================================")
-  console.log(await(sendSdp(description.sdp)))
-  rtcConnection.setLocalDescription(description)
-    .then(() => {console.log("Local description has been set.")})
+function createdOffer(description){
+  return new Promise((resolve, reject) => {
+    rtcConnection.setLocalDescription(description)
+    .then(() => {
+      resolve(description)
+      console.log("Local description has been set.")
+    }).catch((err) => reject(err));
+  });
 }
 
 function setSessionDescriptionError(err){
@@ -61,41 +65,38 @@ function setSessionDescriptionError(err){
 }
 
 
-
 // Create peer connection and behavior
-
-export function startBroadCast(){
+/**
+ * 
+ * @param {WebSocket} socket 
+ */
+export function startBroadCast(socket){
   // Add localstream to connection and create offer to connect
   rtcConnection.addTrack(localStream.getTracks()[0])
 
   rtcConnection.createOffer(offerOptions)
     .then(createdOffer)
+    .then((description) => {
+      // Send offer to signaling server
+      let data = {
+        "event": "offer",
+        "data": {
+          "dtype": "offer",
+          "sdp": description.sdp,
+          "uuid": clientUUID
+        }
+      }
+      
+      socket.send(JSON.stringify(data));
+      console.log("Offer send to signaling server.")
+    })
     .catch(setSessionDescriptionError);
 }
 
-/*****************************************************/
 
 function stopBroadcast(){
   rtcConnection.close();
   rtcConnection = null;
-}
-
-async function sendSdp(sdp){
-  const url = "/broadcast/"
-  
-  const data = { dtype: "offer", sdp: sdp, uuid: clientUUID}
-  console.log(JSON.stringify(data))
-
-  const options = {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(data)
-  }
-
-  const response = await fetch(url, options)
-  return response.json()
 }
 
 /* Protocols

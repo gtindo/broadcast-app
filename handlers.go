@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
-	"github.com/pion/webrtc"
 )
 
 func HomeHandler(res http.ResponseWriter, req *http.Request) {
@@ -21,48 +20,6 @@ func IndexHandler(res http.ResponseWriter, r *http.Request) {
 	}
 
 	tmpl.Execute(res, data)
-}
-
-func BroadcastHandler(w http.ResponseWriter, r *http.Request) {
-	var data SDPData
-	decoder := json.NewDecoder(r.Body)
-
-	err := decoder.Decode(&data)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	SdpChan <- data.SDP
-
-	var sdpType webrtc.SDPType = 1
-
-	configuration := webrtc.Configuration{}
-	description := webrtc.SessionDescription{
-		SDP:  data.SDP,
-		Type: sdpType,
-	}
-
-	connection, err := webrtc.NewPeerConnection(configuration)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	err = connection.SetRemoteDescription(description)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	answer, err := connection.CreateAnswer(nil)
-
-	resData := SDPData{
-		DType: "response",
-		SDP:   answer.SDP,
-		UUID:  data.UUID,
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-
-	json.NewEncoder(w).Encode(resData)
 }
 
 // websocket upgrader
@@ -85,15 +42,27 @@ func SocketHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Print the message to the console
-		fmt.Printf("%s sent: %s\n", conn.RemoteAddr(), string(msg))
+		var data SocketMsg
+		var response SocketResponse
+		var errMsg ErrorMsg
 
-		// parse the message
+		err = json.Unmarshal(msg, &data)
+		if err != nil {
+			errMsg = ErrorMsg{Message: "Bad message", Code: "ERR400"}
+			response = SocketResponse{
+				Event:  "",
+				Data:   nil,
+				Error:  errMsg,
+				Status: false,
+			}
 
-		// Write message back to browser
-		if err = conn.WriteMessage(msgType, msg); err != nil {
-			fmt.Fprintf(w, "message response")
+			// TODO : Log errors in file
+			res, _ := json.Marshal(response)
+			conn.WriteMessage(msgType, res)
 		}
+
+		route := GetSocketHandler(data.Event)
+		route(conn, data.Data)
 	}
 }
 

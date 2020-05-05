@@ -1,4 +1,4 @@
-import { startBroadCast } from './main.js'
+import { startBroadCast, rtcConnection } from './main.js';
 
 let socket = new WebSocket("ws://localhost:4000/socket/");
 
@@ -9,10 +9,13 @@ socket.onopen = async (event) => {
   console.log("Socket connection opened");
 
   startButton.addEventListener("click", () => {
-    socket.send("Ceci est un message");
+    startBroadCast(socket);
   })
 
   socket.onmessage = (event) => {
-    console.log(event.data);
+    let data = JSON.parse(event.data);
+    console.log(data);
+
+    //rtcConnection.setRemoteDescription()
   };
 }
