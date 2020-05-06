@@ -1,5 +1,5 @@
 // unique id of client
-const clientUUID = "dsaffe2wo0ifsdafowqdsfasf";
+export const clientUUID = "dsaffe2wo0ifsdafowqdsfasf";
 
 // Set constraints on stream
 
@@ -93,11 +93,15 @@ export function startBroadCast(socket){
     .catch(setSessionDescriptionError);
 }
 
+//console.log(rtcConnection)
+
 
 function stopBroadcast(){
   rtcConnection.close();
   rtcConnection = null;
 }
+
+
 
 /* Protocols
 SDP : Session description protocol

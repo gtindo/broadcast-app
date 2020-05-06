@@ -35,6 +35,8 @@ func SocketHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	channel := make(chan string)
+
 	for {
 		// Read message from browser
 		msgType, msg, err := conn.ReadMessage()
@@ -59,10 +61,12 @@ func SocketHandler(w http.ResponseWriter, r *http.Request) {
 			// TODO : Log errors in file
 			res, _ := json.Marshal(response)
 			conn.WriteMessage(msgType, res)
+
+			panic(err)
 		}
 
 		route := GetSocketHandler(data.Event)
-		route(conn, data.Data)
+		go route(conn, data.Data, channel)
 	}
 }
 

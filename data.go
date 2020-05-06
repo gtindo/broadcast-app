@@ -4,8 +4,6 @@ type IndexPageData struct {
 	PageTitle string
 }
 
-var SdpChan chan string = make(chan string)
-
 type SDPData struct {
 	DType string `json:"dtype"`
 	SDP   string `json:"sdp"`
@@ -27,4 +25,9 @@ type SocketResponse struct {
 	Data   interface{} `json:"data"`
 	Error  ErrorMsg    `json:"error"`
 	Status bool        `json:"status"`
+}
+
+type CadidateData struct {
+	Candidate   string      `json:"candidate"`
+	Description interface{} `json:"description"`
 }
