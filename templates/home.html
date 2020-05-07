@@ -15,16 +15,22 @@
   </header>
   <main>
     <div class="video-box">
-      <video controls autoplay playsinline id="local-video"></video>
+      <div id="vid-before" class="vid-before-start">
+        <img class="loader" src="/static/img/loading.gif" />
+      </div>
+      <video autoplay playsinline muted id="local-video"></video>
     </div>
 
     <div class="button-box">
       <a href="#" id="startButton" class="button">Broadcast yourself</a>
+      <a href="#" id="stopButton" class="button" style="display: none;">Stop</a>
     </div>
   </main>
 
   <script src="https://webrtchacks.github.io/adapter/adapter-latest.js"></script>
-  <script src="/static/js/main.js" type="module"></script>
+  <script src="/static/js/utils.js" type="module"></script>
+  <script src="/static/js/webrtc.js" type="module"></script>
   <script src="/static/js/websocket.js" type="module"></script>
+  <script src="/static/js/main.js" type="module"></script>
 </body>
 </html>

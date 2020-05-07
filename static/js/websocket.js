@@ -1,21 +1,74 @@
-import { startBroadCast, rtcConnection, clientUUID } from './main.js';
+/*******************************************************************
+ * 
+ * Copyright 2020 gtindo.dev
+ * 
+ * Author: GUEKENG TINDO Yvan
+ * 
+ * Key Words: websocket, channel, event, listener
+ * 
+ * Purpose:
+ *  Framework on top of websocket to send messages using channels
+ * 
+ ******************************************************************/
 
-let socket = new WebSocket("ws://localhost:4000/socket/");
 
-const startButton = document.querySelector("#startButton");
+const SEPARTOR = ':---s---:'
 
-socket.onopen = async (event) => {
+export class WS extends EventTarget{
+
+  /**
+   * Create websocket object
+   * @param {String} url 
+   */
+  constructor(url){
+    super();
+
+    try {
+      this.url = new URL(url)
+      this.socket = new WebSocket(url);
+
+      let ws = this;
+      let socket = this.socket;
+      socket.onopen = (event) => {
+        console.log("Socket connection established !");
+
+        socket.onmessage = (event) => {
+          let data = event.data.split(SEPARTOR);
+          let channel = data[0];
+          let message = data[1];
+          
+          let ev = new CustomEvent(channel, {detail : message});
+          ws.dispatchEvent(ev);
+        }
+      }
+
+    } catch(err) {
+      throw(err)
+    }
+  }
+
+  /**
+   * Send message to channel
+   * 
+   * @param {String} channel 
+   * @param {String} message 
+   */
+  send(channel, message) {
+    if(typeof(message) !== 'string') throw("Invalid message, must be a string.");
+    if(typeof(message) !== 'string') throw("Invalid channel, must be a string");
+
+    let data = `${channel}${SEPARTOR}${message}`;
+    this.socket.send(data);
+  }
+}
+
+/*
+ws.socket.onopen = async (event) => {
 
   console.log("Socket connection opened");
 
-  startButton.addEventListener("click", () => {
-    startBroadCast(socket);
-  })
-
   socket.onmessage = (event) => {
     let res = JSON.parse(event.data);
-    console.log(res);
-
     switch(res.event){
       case "offer":
         let sessionInit = {
@@ -31,28 +84,5 @@ socket.onopen = async (event) => {
         break;
     }
     
-
   };
-
-
-  rtcConnection.oniceconnectionstatechange = e => console.log(rtcConnection.iceConnectionState);
-  
-  rtcConnection.onicecandidate = event => {
-    if(event.candidate !== null){
-      console.log(event.candidate)
-      let data = {
-        "event": "candidate",
-        "data": {
-          "uuid": clientUUID,
-          "candidate": event.candidate.candidate,
-          "sdpMid": event.candidate.sdpMid,
-          "sdpMLineIndex": ""+event.candidate.sdpMLineIndex,
-          "usernameFragment": event.candidate.usernameFragment
-        }
-      }
-      socket.send(JSON.stringify(data))
-      console.log("Candidate send")
-      console.log(rtcConnection.iceConnectionState);
-    }
-  }
-}
+}*/

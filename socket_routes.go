@@ -4,12 +4,12 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-func GetSocketHandler(route string) func(*websocket.Conn, map[string]string, chan string) {
+func GetSocketHandler(route string) func(*websocket.Conn, string, []byte, chan string) {
 	switch route {
 	case "offer":
-		return RTCConnector
+		return OfferHandler
 	case "candidate":
-		return RTCCandidateReceiver
+		return CandidateHandler
 	}
 
 	return nil

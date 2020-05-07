@@ -1,5 +1,20 @@
 package main
 
+import (
+	"errors"
+	"strings"
+)
+
+const ERR400 = "ERR400"
+const ERR500 = "ERR500"
+
+var ERRORS_MSG = map[string]string{
+	ERR400: "Bad message sent",
+	ERR500: "Internal error",
+}
+
+const SEPARATOR = ":---s---:"
+
 type IndexPageData struct {
 	PageTitle string
 }
@@ -8,6 +23,34 @@ type SDPData struct {
 	DType string `json:"dtype"`
 	SDP   string `json:"sdp"`
 	UUID  string `json:"uuid"`
+}
+
+type CandidateData struct {
+	Candidate        string `json:"candidate"`
+	SdpMid           string `json:"sdpMid"`
+	SdpMLineIndex    string `json:"sdpMLineIndex"`
+	UsernameFragment string `json:"usernameFragment"`
+	UUID             string `json:"uuid"`
+}
+
+func (cd *CandidateData) ToString() string {
+	sp := SEPARATOR
+	return cd.UUID + sp + cd.Candidate + sp + cd.SdpMid + sp + cd.SdpMLineIndex + sp + cd.UsernameFragment
+}
+
+func NewCandidateData(candidate string) (CandidateData, error) {
+	sp := SEPARATOR
+	values := strings.Split(candidate, sp)
+	if len(values) < 5 {
+		return CandidateData{}, errors.New("Invalid candidate string.")
+	}
+	return CandidateData{
+		UUID:             values[0],
+		Candidate:        values[1],
+		SdpMid:           values[2],
+		SdpMLineIndex:    values[3],
+		UsernameFragment: values[4],
+	}, nil
 }
 
 type SocketMsg struct {
@@ -21,13 +64,7 @@ type ErrorMsg struct {
 }
 
 type SocketResponse struct {
-	Event  string      `json:"event"`
 	Data   interface{} `json:"data"`
 	Error  ErrorMsg    `json:"error"`
 	Status bool        `json:"status"`
-}
-
-type CadidateData struct {
-	Candidate   string      `json:"candidate"`
-	Description interface{} `json:"description"`
 }

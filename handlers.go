@@ -1,18 +1,15 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"html/template"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/websocket"
 )
 
-func HomeHandler(res http.ResponseWriter, req *http.Request) {
-	fmt.Fprintf(res, "Home page")
-}
-
+// Home page
 func IndexHandler(res http.ResponseWriter, r *http.Request) {
 	tmpl := template.Must(template.ParseFiles("templates/home.html"))
 	data := IndexPageData{
@@ -28,6 +25,7 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
+// Websocket server
 func SocketHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -44,29 +42,18 @@ func SocketHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		var data SocketMsg
-		var response SocketResponse
-		var errMsg ErrorMsg
+		msgtab := strings.Split(string(msg), SEPARATOR)
 
-		err = json.Unmarshal(msg, &data)
-		if err != nil {
-			errMsg = ErrorMsg{Message: "Bad message", Code: "ERR400"}
-			response = SocketResponse{
-				Event:  "",
-				Data:   nil,
-				Error:  errMsg,
-				Status: false,
-			}
-
-			// TODO : Log errors in file
-			res, _ := json.Marshal(response)
-			conn.WriteMessage(msgType, res)
-
-			panic(err)
+		if len(msgtab) != 2 {
+			conn.WriteMessage(msgType, []byte("error"+SEPARATOR+"WS class error, bad message sent."))
+			panic("Invalid message received")
 		}
 
-		route := GetSocketHandler(data.Event)
-		go route(conn, data.Data, channel)
+		route := msgtab[0]
+		data := []byte(msgtab[1])
+
+		handler := GetSocketHandler(route)
+		handler(conn, route, data, channel)
 	}
 }
 
