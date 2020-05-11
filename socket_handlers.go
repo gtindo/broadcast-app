@@ -62,7 +62,7 @@ func OfferHandler(conn *websocket.Conn, route string, data []byte, c chan string
 	}
 
 	// Start connector goroutine
-	go RTCConnector(pc, offerData, c)
+	go RTCConnector(conn, pc, offerData, c)
 }
 
 func CandidateHandler(conn *websocket.Conn, route string, data []byte, c chan string) {

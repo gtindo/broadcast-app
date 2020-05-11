@@ -23,7 +23,7 @@
  * 
  *********************************************************************/
 
-import { getClientID } from './utils.js';
+import { randomString, setStopBehavior, startTimer } from './utils.js';
 import { WS } from './websocket.js';
 
 
@@ -31,10 +31,15 @@ import { WS } from './websocket.js';
 const WS_URL = ("ws://localhost:4000/socket/");
 let ws = new WS(WS_URL);
 ws.addEventListener("error", (err) => console.log(err))
+ws.addEventListener("download_file", (event) => {
+  let res = JSON.parse(event.detail);
+  let message = document.getElementById("message");
+  message.innerHTML = `<a href="${res.data.message}">Your file</a>`
+});
 
 
 // unique id of client
-export const CLIENT_UUID = getClientID();
+export const CLIENT_UUID = randomString(25);
 
 // Peer Connection
 const WEBRTC_CONFIGURATION = null;
@@ -85,6 +90,8 @@ function gotLocalMediaStream(mediaStream)
 { 
   localStream = mediaStream;
   localVideo.srcObject = mediaStream; 
+
+  // Set gray layer on video element
   vidBefore.className = "vid-before";
 }
 
@@ -136,9 +143,17 @@ function setSessionDescriptionError(err){
 function handlePCStateChange(event){
   console.log(PC.iceConnectionState);
   if(PC.iceConnectionState == "connected"){
+    // Remove gray layer
     vidBefore.className = "vid-before-start";
+    
+    // Remove start button on screen
     startButton.style.display = "none";
+
+    // Display Stop button
     stopButton.style.display = "inline";
+
+    // Start timer
+    startTimer();
   }
 }
 
@@ -195,7 +210,9 @@ function handleOfferResponse(event){
  * @param {WebSocket} socket 
  */
 export async function rtcConnect(){
+  // Write display connecting on start button
   startButton.innerHTML = "Connecting..."
+
   // Add localstream to connection and create offer to connect
   let tracks = localStream.getTracks()
   for(let track of tracks){
@@ -223,19 +240,16 @@ export async function rtcConnect(){
     console.log(err)
 
     alert(CONNECTION_ERROR_MSG);
-    // remove connecting layer
-    vidBefore.className = "vid-before-start";
-    startButton.innerHTML = "Broadcast Yourself"
+
+    // remove Gray layer
+    setStopBehavior();
   }
 }
 
 
 export function stopBroadcast(){
   PC.close();
-  PC = null;
+  PC = new RTCPeerConnection(WEBRTC_CONFIGURATION);
 
-  vidBefore.className = "vid-before-start";
-  startButton.innerHTML = "Broadcast Yourself"
-  startButton.style.display = "inline"
-  stopButton.style.display = "none";
+  setStopBehavior();
 }

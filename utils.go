@@ -54,3 +54,7 @@ func saveToDisk(i media.Writer, track *webrtc.Track) {
 		}
 	}
 }
+
+// ffmpeg -i roqfgrewd_GbvLDaWIDxWOiKx.ivf -filter:v "setpts=2*PTS" output.ivf
+
+// ffmpeg -i roqfgrewd_GbvLDaWIDxWOiKx.ivf -filter:v "setpts=2*PTS" output.ivf && ffmpeg -i output.ivf -i roqfgrewd_GbvLDaWIDxWOiKx.ogg -c copy output.webm

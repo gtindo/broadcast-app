@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"os/exec"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/pion/rtcp"
 	"github.com/pion/webrtc"
 	"github.com/pion/webrtc/pkg/media/ivfwriter"
@@ -14,16 +16,18 @@ const (
 	rtcpPLIInterval = time.Second * 3
 )
 
-func RTCConnector(pc *webrtc.PeerConnection, offerData SDPData, c chan string) {
+func RTCConnector(ws *websocket.Conn, pc *webrtc.PeerConnection, offerData SDPData, c chan string) {
 
 	basePath := "static/audio/"
+	video := basePath + offerData.UUID + ".ivf"
+	audio := basePath + offerData.UUID + ".ogg"
 
-	oggFile, err := oggwriter.New((basePath + offerData.UUID + ".ogg"), 48000, 2)
+	oggFile, err := oggwriter.New((audio), 48000, 2)
 	if err != nil {
 		panic(err)
 	}
 
-	ivfFile, err := ivfwriter.New(basePath + offerData.UUID + ".webm")
+	ivfFile, err := ivfwriter.New(video)
 	if err != nil {
 		panic(err)
 	}
@@ -53,12 +57,15 @@ func RTCConnector(pc *webrtc.PeerConnection, offerData SDPData, c chan string) {
 	// Set the handler for ICE pc state
 	// This will notify you when the peer has connected/disconnected
 	pc.OnICEConnectionStateChange(func(connectionState webrtc.ICEConnectionState) {
-		fmt.Printf("Peer connection State has changed %s \n", connectionState.String())
+
+		writingStatus := 0
 
 		if connectionState == webrtc.ICEConnectionStateConnected {
 			fmt.Println("Stream started for - ", offerData.UUID)
-		} else if connectionState == webrtc.ICEConnectionStateFailed ||
-			connectionState == webrtc.ICEConnectionStateDisconnected {
+		} else if connectionState == webrtc.ICEConnectionStateFailed {
+			fmt.Println("Peer connection failed to reconnect.")
+		} else if connectionState == webrtc.ICEConnectionStateDisconnected {
+			fmt.Printf("Peer connection State has changed %s \n", connectionState.String())
 			closeErr := oggFile.Close()
 			if closeErr != nil {
 				panic(closeErr)
@@ -70,6 +77,30 @@ func RTCConnector(pc *webrtc.PeerConnection, offerData SDPData, c chan string) {
 			}
 
 			fmt.Println("Done writing media files for -", offerData.UUID)
+			writingStatus = 1
+		}
+
+		if writingStatus == 1 {
+			pre_video := basePath + "pre_" + offerData.UUID + ".ivf"
+			output := basePath + offerData.UUID + ".webm"
+			cmd1 := exec.Command("ffmpeg", "-i", video, "-filter:v", "setpts=2*PTS", pre_video)
+			cmd2 := exec.Command("ffmpeg", "-i", pre_video, "-i", audio, "-c", "copy", output)
+
+			data := make(map[string]string)
+			data["message"] = "Generating your video file...."
+			res := SuccessResponse("download_start", data)
+
+			ws.WriteMessage(1, res)
+			fmt.Println("Generating video file for ", offerData.UUID)
+			err = cmd1.Run()
+			fmt.Println(err)
+			err = cmd2.Run()
+			fmt.Println(err)
+			fmt.Println("File generation Finished - ", offerData.UUID)
+
+			data["message"] = "/" + output
+			res = SuccessResponse("download_file", data)
+			ws.WriteMessage(1, res)
 		}
 	})
 }

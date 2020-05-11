@@ -59,7 +59,7 @@ h1{
 }
 
 .button-box{
-  margin-top: 40px;
+  margin-top: 20px;
   width: 100%;
   text-align: center;
 }
@@ -87,4 +87,24 @@ h1{
 .loader {
   width: 100px;
   height: 100px;
+}
+
+.message-box, .timer-box-start {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.timer-box-stop {
+  display: none;
+}
+
+.message, .timer {
+  color: #ffffff;
+  font-size: 1.5rem;
+}
+
+.message-box a, .message-box a:hover {
+  color: #ffffff;
 }

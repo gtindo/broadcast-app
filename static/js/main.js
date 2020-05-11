@@ -14,6 +14,9 @@ import { startBroadcast, stopBroadcast } from './webrtc.js';
 
 
 function main(){
+  let message = document.getElementById("message")
+  message.innerHTML = "";
+
   let startButton = document.getElementById('startButton');
   startButton.addEventListener('click', startBroadcast);
 
