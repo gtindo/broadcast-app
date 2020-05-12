@@ -1,12 +1,25 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 )
 
 func main() {
-	port := "4000"
+	configFile, err := os.Open("config.json")
+	if err != nil {
+		panic("Unable to read config.json file !")
+	}
+
+	var config Config
+
+	jdecoder := json.NewDecoder(configFile)
+	err = jdecoder.Decode(&config)
+	if err != nil {
+		panic("Unable to parse config.json content !")
+	}
 
 	// Setup static files serving
 	fs := http.FileServer(http.Dir("static/"))
@@ -16,14 +29,32 @@ func main() {
 	http.HandleFunc("/home/", log(IndexHandler))
 	http.HandleFunc("/socket/", SocketHandler)
 
-	RunServer(port)
+	if config.ENV == "production" {
+		RunSecureServer(config)
+	} else {
+		RunServer(config)
+	}
 }
 
-func RunServer(port string) {
+func RunServer(config Config) {
 	server := http.Server{
-		Addr: ":" + port,
+		Addr: ":" + config.HTTP_PORT,
 	}
 
 	defer server.ListenAndServe()
-	fmt.Printf("HTTP server started on port %s \n", port)
+	fmt.Printf("%s %s HTTP server started on port %s \n", config.APP_NAME, config.APP_VERSION, config.HTTP_PORT)
+}
+
+func RunSecureServer(config Config) {
+	server := http.Server{
+		Addr: ":" + config.HTTP_PORT,
+	}
+
+	err := server.ListenAndServeTLS(config.SSL_CERT_PATH, config.SSL_KEY_PATH)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "An error occured while starting server !")
+		panic(err)
+	} else {
+		fmt.Printf("%s %s HTTPS server started on port %s \n", config.APP_NAME, config.APP_VERSION, config.HTTP_PORT)
+	}
 }

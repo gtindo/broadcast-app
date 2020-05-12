@@ -68,3 +68,12 @@ type SocketResponse struct {
 	Error  ErrorMsg    `json:"error"`
 	Status bool        `json:"status"`
 }
+
+type Config struct {
+	APP_NAME      string `json:"APP_NAME"`
+	APP_VERSION   string `json:"APP_VERSION"`
+	HTTP_PORT     string `json:"HTTP_PORT"`
+	ENV           string `json:"ENV"`
+	SSL_KEY_PATH  string `json:"SSL_KEY_PATH"`
+	SSL_CERT_PATH string `json:"SSL_CERT_PATH"`
+}
