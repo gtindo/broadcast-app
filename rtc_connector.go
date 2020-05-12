@@ -58,8 +58,6 @@ func RTCConnector(ws *websocket.Conn, pc *webrtc.PeerConnection, offerData SDPDa
 	// This will notify you when the peer has connected/disconnected
 	pc.OnICEConnectionStateChange(func(connectionState webrtc.ICEConnectionState) {
 
-		writingStatus := 0
-
 		if connectionState == webrtc.ICEConnectionStateConnected {
 			fmt.Println("Stream started for - ", offerData.UUID)
 		} else if connectionState == webrtc.ICEConnectionStateFailed {
