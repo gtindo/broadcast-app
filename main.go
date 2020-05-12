@@ -50,11 +50,6 @@ func RunSecureServer(config Config) {
 		Addr: ":" + config.HTTP_PORT,
 	}
 
-	err := server.ListenAndServeTLS(config.SSL_CERT_PATH, config.SSL_KEY_PATH)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "An error occured while starting server !")
-		panic(err)
-	} else {
-		fmt.Printf("%s %s HTTPS server started on port %s \n", config.APP_NAME, config.APP_VERSION, config.HTTP_PORT)
-	}
+	fmt.Printf("%s %s HTTPS server started on port %s \n", config.APP_NAME, config.APP_VERSION, config.HTTP_PORT)
+	defer server.ListenAndServeTLS(config.SSL_CERT_PATH, config.SSL_KEY_PATH)
 }
