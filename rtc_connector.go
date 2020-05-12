@@ -64,6 +64,7 @@ func RTCConnector(ws *websocket.Conn, pc *webrtc.PeerConnection, offerData SDPDa
 			fmt.Println("Stream started for - ", offerData.UUID)
 		} else if connectionState == webrtc.ICEConnectionStateFailed {
 			fmt.Println("Peer connection failed to reconnect.")
+			writingStatus = 1
 		} else if connectionState == webrtc.ICEConnectionStateDisconnected {
 			fmt.Printf("Peer connection State has changed %s \n", connectionState.String())
 			closeErr := oggFile.Close()
@@ -77,10 +78,10 @@ func RTCConnector(ws *websocket.Conn, pc *webrtc.PeerConnection, offerData SDPDa
 			}
 
 			fmt.Println("Done writing media files for -", offerData.UUID)
-			writingStatus = 1
+			writingStatus += 1
 		}
 
-		if writingStatus == 1 {
+		if writingStatus == 2 {
 			pre_video := basePath + "pre_" + offerData.UUID + ".ivf"
 			output := basePath + offerData.UUID + ".webm"
 			cmd1 := exec.Command("ffmpeg", "-i", video, "-filter:v", "setpts=2*PTS", pre_video)
