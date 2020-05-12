@@ -62,9 +62,9 @@ func RTCConnector(ws *websocket.Conn, pc *webrtc.PeerConnection, offerData SDPDa
 
 		if connectionState == webrtc.ICEConnectionStateConnected {
 			fmt.Println("Stream started for - ", offerData.UUID)
+			writingStatus = 1
 		} else if connectionState == webrtc.ICEConnectionStateFailed {
 			fmt.Println("Peer connection failed to reconnect.")
-			writingStatus = 1
 		} else if connectionState == webrtc.ICEConnectionStateDisconnected {
 			fmt.Printf("Peer connection State has changed %s \n", connectionState.String())
 			closeErr := oggFile.Close()
