@@ -29,7 +29,7 @@ import { WS } from './websocket.js';
 const hostname = window.location.hostname;
 
 // Establish websocket connection
-const WS_URL = hostname === "localhost" ? "ws://localhost:4000/socket/" : "wss://broadcast.gtindo.dev/socket/";
+const WS_URL = hostname === "localhost" ? "ws://localhost:4000/socket/" : "ws://broadcast.gtindo.dev/socket/";
 let ws = new WS(WS_URL);
 ws.addEventListener("error", (err) => console.log(err))
 ws.addEventListener("download_file", (event) => {
