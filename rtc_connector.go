@@ -78,7 +78,7 @@ func RTCConnector(ws *websocket.Conn, pc *webrtc.PeerConnection, offerData SDPDa
 
 			pre_video := basePath + "pre_" + offerData.UUID + ".ivf"
 			output := basePath + offerData.UUID + ".webm"
-			cmd1 := exec.Command("ffmpeg", "-i", video, "-filter:v", "setpts=2*PTS", pre_video)
+			cmd1 := exec.Command("ffmpeg", "-i", video, "-filter:v", "setpts=2.5*PTS", pre_video)
 			cmd2 := exec.Command("ffmpeg", "-i", pre_video, "-i", audio, "-c", "copy", output)
 
 			data := make(map[string]string)
